@@ -1,0 +1,119 @@
+<style>
+    #myCanvas{
+        float: left;
+    }
+    #commands{
+        float: left;
+        overflow: auto;
+        overflow-y: scroll;
+        height: 1000px;
+        width: 432px;
+    }
+    #title{
+        text-align: center;
+    }
+</style>
+<body>
+    <h1 id="title"> Light decoration </h1>
+    <div >
+        <canvas id="myCanvas" width="1000" height="1000"></canvas>
+        <div id="commands">
+            <ul id="commandsList">
+
+            </ul>
+        </div>
+    </div>
+</body>
+<script>
+
+
+function drawGrid(context) {
+    for (var x = 0; x < 1001; x += 10) {
+      context.moveTo(x, 0);
+      context.lineTo(x, 1000);
+    }
+    
+    for (var y = 0; y < 1001; y += 10) {
+      context.moveTo(0, y);
+      context.lineTo(1000, y);
+    }
+    
+    context.strokeStyle = "#ddd";
+    context.stroke();
+}
+
+function fillSquare(context, x1,y1,x2,y2,color){
+    context.fillStyle = color;
+    context.fillRect(x1,y1,x2-x1,y2-y1);
+}
+
+function toggleSquare(context,x1,y1,x2,y2,element){
+    console.log(element);
+    console.log("x1 : " + x1 + " x2 : " + x2);
+    console.log("y1 : " + y1 + " y2 : " + y2);
+    let pixel = context.getImageData(x1,y1,x2-x1,y2-y1).data;
+    for (i = 0; i < pixel.length; i += 4) {
+        pixel[i] = 255-pixel[i];
+        pixel[i + 1] = 255-pixel[i + 1];
+        pixel[i + 2] = 255-pixel[i + 2];
+        pixel[i + 3] = 255;
+    }
+
+}
+
+function loadFile(filePath) {
+  var result = null;
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", filePath, false);
+  xmlhttp.send();
+  if (xmlhttp.status==200) {
+    result = xmlhttp.responseText;
+  }
+  return result;
+}
+
+
+function executeCommands(context,divCommand,element){
+    var node = document.createElement("LI");
+    var textnode = document.createTextNode(element);
+    node.appendChild(textnode);
+    divCommand.appendChild(node);
+    node.scrollIntoView();
+    var arrayElement = element.split(" ");
+    if(arrayElement.length === 5){
+        var onOrOff = arrayElement[1];
+        var firstPoint = arrayElement[2].split(",");
+        var secondPoint = arrayElement[4].split(",");
+        var color = "";
+        if(onOrOff === "on"){
+            color = "white";
+        }else{
+            color = "black";
+        }
+        fillSquare(context,firstPoint[0],firstPoint[1],secondPoint[0],secondPoint[1] ,color);
+    }else{
+        var firstPoint = arrayElement[1].split(",");
+        var secondPoint = arrayElement[3].split(",");
+        if(firstPoint[0] === secondPoint[0] || firstPoint[1] === secondPoint[1]){
+            console.log("impossible car pas un rectangle");
+        }else{
+            toggleSquare(context,firstPoint[0],firstPoint[1],secondPoint[0],secondPoint[1],element);
+        }
+    }
+}
+
+function runCommands(context,divCommand){
+    var commands = loadFile('./data-light-decoration.txt').split(/\r\n|\n/);
+    commands.forEach(function(element){
+        executeCommands(context,divCommand,element);
+    });
+}
+
+var canvas = document.getElementById('myCanvas');
+var context = canvas.getContext('2d');
+var commands = document.getElementById('commandsList');
+
+drawGrid(context);
+runCommands(context,commands);
+
+</script>
