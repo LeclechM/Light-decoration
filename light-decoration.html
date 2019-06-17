@@ -27,7 +27,7 @@
 <script>
 
 
-function drawGrid(context) {
+function drawGrid(context,canvas) {
     for (var x = 0; x < 1001; x += 10) {
       context.moveTo(x, 0);
       context.lineTo(x, 1000);
@@ -47,18 +47,18 @@ function fillSquare(context, x1,y1,x2,y2,color){
     context.fillRect(x1,y1,x2-x1,y2-y1);
 }
 
-function toggleSquare(context,x1,y1,x2,y2,element){
-    console.log(element);
-    console.log("x1 : " + x1 + " x2 : " + x2);
-    console.log("y1 : " + y1 + " y2 : " + y2);
-    let pixel = context.getImageData(x1,y1,x2-x1,y2-y1).data;
-    for (i = 0; i < pixel.length; i += 4) {
-        pixel[i] = 255-pixel[i];
-        pixel[i + 1] = 255-pixel[i + 1];
-        pixel[i + 2] = 255-pixel[i + 2];
-        pixel[i + 3] = 255;
+function toggleSquare(context,x1,y1,x2,y2){
+    var imageData = context.getImageData(x1,y1,x2-x1,y2-y1);
+    var data = imageData.data;
+    for(var i = 0; i < data.length; i += 4) {
+          // red
+          data[i] = 255 - data[i];
+          // green
+          data[i + 1] = 255 - data[i + 1];
+          // blue
+          data[i + 2] = 255 - data[i + 2];
     }
-
+    context.putImageData(imageData, x1, y1);
 }
 
 function loadFile(filePath) {
@@ -94,10 +94,8 @@ function executeCommands(context,divCommand,element){
     }else{
         var firstPoint = arrayElement[1].split(",");
         var secondPoint = arrayElement[3].split(",");
-        if(firstPoint[0] === secondPoint[0] || firstPoint[1] === secondPoint[1]){
-            console.log("impossible car pas un rectangle");
-        }else{
-            toggleSquare(context,firstPoint[0],firstPoint[1],secondPoint[0],secondPoint[1],element);
+        if(firstPoint[0] !== secondPoint[0] && firstPoint[1] !== secondPoint[1]){
+            toggleSquare(context,firstPoint[0],firstPoint[1],secondPoint[0],secondPoint[1]);
         }
     }
 }
@@ -113,7 +111,7 @@ var canvas = document.getElementById('myCanvas');
 var context = canvas.getContext('2d');
 var commands = document.getElementById('commandsList');
 
-drawGrid(context);
+drawGrid(context,canvas);
 runCommands(context,commands);
-
+toggleSquare(context,0,0,1000,1000)
 </script>
